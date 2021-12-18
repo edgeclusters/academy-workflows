@@ -36,7 +36,7 @@ jobs:
       - name: deploy kubeconfig
         run: |
           mkdir ~/.kube
-          echo "${{ secret.kubeconfig }}" | base64 -d > ~/.kube/config
+          echo "${{ secrets.kubeconfig }}" | base64 -d > ~/.kube/config
           chmod 700 ~/.kube
           chmod 600 ~/.kube/config
 
