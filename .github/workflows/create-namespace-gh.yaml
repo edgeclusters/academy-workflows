@@ -27,8 +27,8 @@ on:
         description: Container registry secret name
 
 jobs:
-  namespace-setup:
-    name: namespace setup
+  create-namespace:
+    name: Create namespace job
     runs-on: ubuntu-latest
 
     steps:
