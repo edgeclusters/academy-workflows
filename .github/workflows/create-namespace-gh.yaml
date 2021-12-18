@@ -15,6 +15,10 @@ on:
         type: string
         required: true
         description: Container registry user name
+      registrySecretName:
+        type: string
+        required: true
+        description: Container registry secret name
     secrets:
       kubeconfig:
         required: true
@@ -22,9 +26,6 @@ on:
       registryPassword:
         required: true
         description: Container registry pasword
-      registrySecretName:
-        required: true
-        description: Container registry secret name
 
 jobs:
   create-namespace:
@@ -45,7 +46,7 @@ jobs:
 
       - name: create container registry secret
         run: |
-           kubectl create secret docker-registry ${{ secrets.registrySecretName }} \
+           kubectl create secret docker-registry ${{ inputs.registrySecretName }} \
            --namespace=${{ inputs.namespace }} \
            --docker-server=${{ inputs.registryHostname }} \
            --docker-username=${{ inputs.registryUser }} \
