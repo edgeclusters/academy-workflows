@@ -1,0 +1,77 @@
+name: Create namespace (GitHub-hosted runners)
+
+on:
+  workflow_call:
+    inputs:
+      namespace:
+        type: string
+        required: true
+        description: Namespace
+      registryHostname:
+        type: string
+        required: true
+        description: Container registry hostname
+      registryUser:
+        type: string
+        required: true
+        description: Container registry user name
+    secrets:
+      kubeconfig:
+        required: true
+        description: Kubeconfig to access the destination cluster
+      registryPassword:
+        required: true
+        description: Container registry pasword
+      registrySecretName:
+        required: true
+        description: Container registry secret name
+
+  # workflow_dispatch:
+  #   inputs:
+  #     namespace:
+  #       required: false
+  #       description: Kubernetes namespace to set up
+
+jobs:
+  namespace-setup:
+    name: namespace setup
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # - uses: actions/checkout@v2
+
+      # - name: load configuration values
+      #   run: cat config.env >> $GITHUB_ENV
+
+      - name: deploy kubeconfig
+        run: |
+          mkdir ~/.kube
+          echo "${{ secret.kubeconfig }}" | base64 -d > ~/.kube/config
+          chmod 700 ~/.kube
+          chmod 600 ~/.kube/config
+
+      - name: create namespace
+        run: |
+          kubectl create namespace ${{ inputs.namespace }} || true
+        # kubectl create namespace ${{ github.event.inputs.namespace }} || true
+
+      - name: create container registry secret
+        run: |
+           kubectl create secret docker-registry ${{ secrets.registrySecretName }} \
+           --namespace=${{ inputs.namespace }} \
+           --docker-server=${{ inputs.registryHostname }} \
+           --docker-username=${{ inputs.registryUser }} \
+           --docker-password=${{ secrets.registryPassword }} \
+           --dry-run=client \
+           --output=yaml | kubectl apply -f -
+
+      # - name: create container registry secret
+      #   run: |
+      #      kubectl create secret docker-registry ${{ env.CONTAINER_REGISTRY_SECRET_NAME }} \
+      #      --namespace=${{ github.event.inputs.namespace }} \
+      #      --docker-server=${{ env.CONTAINER_REGISTRY_HOSTNAME }} \
+      #      --docker-username=${{ env.CONTAINER_REGISTRY_USER }} \
+      #      --docker-password=${{ secrets.CONTAINER_REGISTRY_PASSWORD }} \
+      #      --dry-run=client \
+      #      --output=yaml | kubectl apply -f -
