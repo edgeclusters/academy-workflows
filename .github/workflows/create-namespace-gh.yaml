@@ -1,4 +1,4 @@
-name: Create namespace (GitHub-hosted runners)
+name: Create and set up a namespace
 
 on:
   workflow_call:
@@ -26,24 +26,12 @@ on:
         required: true
         description: Container registry secret name
 
-  # workflow_dispatch:
-  #   inputs:
-  #     namespace:
-  #       required: false
-  #       description: Kubernetes namespace to set up
-
 jobs:
   namespace-setup:
     name: namespace setup
     runs-on: ubuntu-latest
 
     steps:
-
-      # - uses: actions/checkout@v2
-
-      # - name: load configuration values
-      #   run: cat config.env >> $GITHUB_ENV
-
       - name: deploy kubeconfig
         run: |
           mkdir ~/.kube
@@ -54,7 +42,6 @@ jobs:
       - name: create namespace
         run: |
           kubectl create namespace ${{ inputs.namespace }} || true
-        # kubectl create namespace ${{ github.event.inputs.namespace }} || true
 
       - name: create container registry secret
         run: |
@@ -65,13 +52,3 @@ jobs:
            --docker-password=${{ secrets.registryPassword }} \
            --dry-run=client \
            --output=yaml | kubectl apply -f -
-
-      # - name: create container registry secret
-      #   run: |
-      #      kubectl create secret docker-registry ${{ env.CONTAINER_REGISTRY_SECRET_NAME }} \
-      #      --namespace=${{ github.event.inputs.namespace }} \
-      #      --docker-server=${{ env.CONTAINER_REGISTRY_HOSTNAME }} \
-      #      --docker-username=${{ env.CONTAINER_REGISTRY_USER }} \
-      #      --docker-password=${{ secrets.CONTAINER_REGISTRY_PASSWORD }} \
-      #      --dry-run=client \
-      #      --output=yaml | kubectl apply -f -
